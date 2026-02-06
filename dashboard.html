@@ -2,63 +2,143 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Expense Tracker | Dashboard</title>
+<title>TrackMyPaisa | Dashboard</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-*{box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-body{
-  margin:0;min-height:100vh;padding:16px;color:#fff;
-  background:radial-gradient(circle at top,#3a2f7d,#050816);
+*{
+  box-sizing:border-box;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
 }
+
+body{
+  margin:0;
+  min-height:100vh;
+  padding:16px;
+  color:#fff;
+  background:
+    radial-gradient(circle at top left,#6b5cff,#050816),
+    radial-gradient(circle at bottom right,#8a5cff,#050816);
+  animation:bg 12s ease infinite alternate;
+}
+
+@keyframes bg{
+  from{background-position:0% 0%,100% 100%}
+  to{background-position:100% 100%,0% 0%}
+}
+
+/* CARD */
 .card{
-  background:rgba(255,255,255,.08);
-  backdrop-filter:blur(18px);
-  border-radius:22px;
+  background:linear-gradient(
+    180deg,
+    rgba(255,255,255,.16),
+    rgba(255,255,255,.06)
+  );
+  backdrop-filter:blur(22px);
+  border-radius:26px;
   padding:18px;
   margin-bottom:16px;
+  border:1px solid rgba(255,255,255,.25);
+  box-shadow:0 30px 70px rgba(0,0,0,.6);
+  animation:fade .6s ease;
 }
-.header{display:flex;justify-content:space-between;align-items:center}
+
+@keyframes fade{
+  from{opacity:0;transform:translateY(20px)}
+  to{opacity:1;transform:none}
+}
+
+/* HEADER */
+.header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.profile{
+  display:flex;
+  gap:12px;
+  align-items:center;
+}
+.avatar{
+  width:44px;height:44px;
+  border-radius:50%;
+  background:linear-gradient(135deg,#6a7bff,#9a6bff);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:22px;
+}
+.greet{font-size:14px;opacity:.8}
+.email{font-size:12px;opacity:.7}
+
 .logout{
-  background:#ef4444;color:#fff;border:none;
-  padding:8px 16px;border-radius:999px;cursor:pointer
+  background:#ef4444;
+  border:none;
+  padding:8px 16px;
+  color:#fff;
+  border-radius:999px;
 }
+
+/* FORM */
 input,select{
-  width:100%;padding:14px;border:none;
-  border-radius:14px;margin-top:10px
+  width:100%;
+  padding:14px;
+  border-radius:16px;
+  border:none;
+  margin-top:10px;
 }
 .save{
-  width:100%;margin-top:14px;padding:14px;
-  border:none;border-radius:999px;
+  width:100%;
+  margin-top:14px;
+  padding:14px;
+  border-radius:999px;
+  border:none;
   background:linear-gradient(135deg,#6a7bff,#9a6bff);
-  color:#fff;font-weight:700;cursor:pointer
+  color:white;
+  font-weight:700;
 }
 .cancel{
-  margin-top:8px;width:100%;
-  padding:12px;border:none;border-radius:999px;
-  background:rgba(255,255,255,.2);color:#fff;
-  display:none;cursor:pointer
+  width:100%;
+  margin-top:8px;
+  padding:12px;
+  border-radius:999px;
+  border:none;
+  background:rgba(255,255,255,.2);
+  color:#fff;
+  display:none;
 }
+
+/* EXPENSE */
 .expense{
   background:rgba(255,255,255,.08);
-  border-radius:16px;
-  padding:14px;margin-top:12px;
-  display:flex;justify-content:space-between;gap:10px
+  border-radius:18px;
+  padding:14px;
+  margin-top:12px;
+  display:flex;
+  justify-content:space-between;
 }
 .tag{
   background:#6366f1;
-  padding:4px 12px;border-radius:999px;font-size:11px
+  padding:4px 12px;
+  border-radius:999px;
+  font-size:11px;
 }
 .actions{display:flex;gap:8px}
 .icon{
-  width:36px;height:36px;border:none;border-radius:12px;
-  cursor:pointer
+  width:36px;height:36px;
+  border:none;
+  border-radius:12px;
 }
-.edit{background:rgba(99,102,241,.25);color:#c7d2fe}
+.edit{background:rgba(99,102,241,.3);color:#c7d2fe}
 .delete{background:rgba(239,68,68,.3);color:#fecaca}
-.total{text-align:right;margin-top:14px;font-size:18px}
+
+.total{
+  text-align:right;
+  margin-top:14px;
+  font-size:20px;
+}
 </style>
 </head>
 
@@ -66,7 +146,13 @@ input,select{
 
 <!-- HEADER -->
 <div class="card header">
-  <div id="email">Loading...</div>
+  <div class="profile">
+    <div class="avatar">👋</div>
+    <div>
+      <div class="greet" id="greet">Good Day</div>
+      <div class="email" id="email">—</div>
+    </div>
+  </div>
   <button class="logout" onclick="logout()">Logout</button>
 </div>
 
@@ -74,7 +160,7 @@ input,select{
 <div class="card">
   <h3 id="formTitle">Add Expense</h3>
   <input id="amount" type="number" placeholder="Amount ₹">
-  <input id="note" placeholder="Note">
+  <input id="note" placeholder="Note (where you spent)">
   <select id="category">
     <option>Food</option>
     <option>Travel</option>
@@ -86,15 +172,15 @@ input,select{
   <button class="cancel" id="cancelBtn" onclick="cancelEdit()">Cancel Edit</button>
 </div>
 
-<!-- MONTH -->
+<!-- FILTER -->
 <div class="card">
   <h3>Filter by Month</h3>
   <input type="month" id="monthFilter">
 </div>
 
-<!-- CHART -->
+<!-- PIE -->
 <div class="card">
-  <h3>Category Breakdown</h3>
+  <h3>Spending Breakdown</h3>
   <canvas id="pieChart"></canvas>
 </div>
 
@@ -111,171 +197,132 @@ import {
   collection, addDoc, getDocs,
   deleteDoc, updateDoc, doc
 } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
-import {
-  onAuthStateChanged,
-  signOut
-} from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
+import { onAuthStateChanged, signOut } from
+  "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
 
-const amount = document.getElementById("amount");
-const note = document.getElementById("note");
-const category = document.getElementById("category");
-const list = document.getElementById("list");
-const totalEl = document.getElementById("total");
-const emailEl = document.getElementById("email");
-const saveBtn = document.getElementById("saveBtn");
-const cancelBtn = document.getElementById("cancelBtn");
-const formTitle = document.getElementById("formTitle");
-const monthFilter = document.getElementById("monthFilter");
+const amount=document.getElementById("amount");
+const note=document.getElementById("note");
+const category=document.getElementById("category");
+const list=document.getElementById("list");
+const totalEl=document.getElementById("total");
+const emailEl=document.getElementById("email");
+const greetEl=document.getElementById("greet");
+const saveBtn=document.getElementById("saveBtn");
+const cancelBtn=document.getElementById("cancelBtn");
+const formTitle=document.getElementById("formTitle");
+const monthFilter=document.getElementById("monthFilter");
 
-let uid = "", editId = null, chart;
+let uid="", editId=null, chart;
+
+/* GREETING */
+const h=new Date().getHours();
+greetEl.innerText=
+  h<12?"Good Morning ☀️":h<18?"Good Afternoon 🌤️":"Good Evening 🌙";
 
 /* AUTH */
-onAuthStateChanged(auth, user => {
-  if (!user) {
-    window.location.replace("/");
-    return;
-  }
-  uid = user.uid;
-  emailEl.innerText = user.email;
+onAuthStateChanged(auth,user=>{
+  if(!user) return location.href="login.html";
+  uid=user.uid;
+  emailEl.innerText=user.email;
 
-  const d = new Date();
-  monthFilter.value =
-    `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
-
+  const d=new Date();
+  monthFilter.value=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
   load();
 });
 
-monthFilter.onchange = load;
+/* SAVE */
+window.saveExpense=async()=>{
+  if(!amount.value||!note.value) return alert("Fill all fields");
+  const data={
+    amount:Number(amount.value),
+    note:note.value,
+    category:category.value,
+    createdAt:Date.now()
+  };
+  editId
+    ? await updateDoc(doc(db,"users",uid,"expenses",editId),data)
+    : await addDoc(collection(db,"users",uid,"expenses"),data);
 
-/* SAVE EXPENSE */
-window.saveExpense = async () => {
-  if (!amount.value || !note.value) {
-    alert("Fill all fields");
-    return;
-  }
-
-  try {
-    const data = {
-      amount: Number(amount.value),
-      note: note.value,
-      category: category.value,
-      createdAt: Date.now()
-    };
-
-    if (editId) {
-      await updateDoc(
-        doc(db,"users",uid,"expenses",editId),
-        data
-      );
-    } else {
-      await addDoc(
-        collection(db,"users",uid,"expenses"),
-        data
-      );
-    }
-
-    resetForm();
-    load();
-
-  } catch (e) {
-    alert("Expense add nahi hua ❌\n" + e.message);
-  }
+  reset(); load();
 };
 
-/* RESET */
-function resetForm(){
-  editId = null;
-  amount.value = "";
-  note.value = "";
-  formTitle.innerText = "Add Expense";
-  saveBtn.innerText = "Save Expense";
-  cancelBtn.style.display = "none";
+function reset(){
+  editId=null;
+  amount.value="";note.value="";
+  saveBtn.innerText="Save Expense";
+  formTitle.innerText="Add Expense";
+  cancelBtn.style.display="none";
 }
-window.cancelEdit = resetForm;
+window.cancelEdit=reset;
 
-/* LOAD DATA */
+/* LOAD */
 async function load(){
-  list.innerHTML="";
-  let total = 0;
-  let cat = {};
+  list.innerHTML=""; let total=0, cat={};
+  const [y,m]=monthFilter.value.split("-");
+  const start=new Date(y,m-1,1).getTime();
+  const end=new Date(y,m,1).getTime();
 
-  const [y,m] = monthFilter.value.split("-");
-  const start = new Date(y,m-1,1).getTime();
-  const end = new Date(y,m,1).getTime();
-
-  const snap = await getDocs(
-    collection(db,"users",uid,"expenses")
-  );
-
+  const snap=await getDocs(collection(db,"users",uid,"expenses"));
   snap.forEach(d=>{
-    const e = d.data();
-    if(e.createdAt < start || e.createdAt >= end) return;
+    const e=d.data();
+    if(e.createdAt<start||e.createdAt>=end) return;
+    total+=e.amount;
+    cat[e.category]=(cat[e.category]||0)+e.amount;
 
-    total += e.amount;
-    cat[e.category] = (cat[e.category] || 0) + e.amount;
-
-    list.innerHTML += `
-      <div class="expense">
-        <div>
-          ₹${e.amount} - ${e.note}<br>
-          <span class="tag">${e.category}</span>
-        </div>
-        <div class="actions">
-          <button class="icon edit"
-            onclick="editExpense('${d.id}',${e.amount},
-            '${e.note.replace(/'/g,"\\'")}','${e.category}')">✎</button>
-          <button class="icon delete"
-            onclick="deleteExpense('${d.id}')">✕</button>
-        </div>
-      </div>`;
+    list.innerHTML+=`
+    <div class="expense">
+      <div>
+        ₹${e.amount} - ${e.note}<br>
+        <span class="tag">${e.category}</span>
+      </div>
+      <div class="actions">
+        <button class="icon edit"
+          onclick="edit('${d.id}',${e.amount},'${e.note}','${e.category}')">✎</button>
+        <button class="icon delete"
+          onclick="del('${d.id}')">✕</button>
+      </div>
+    </div>`;
   });
-
-  totalEl.innerText = total;
-  renderChart(cat);
+  totalEl.innerText=total;
+  draw(cat);
 }
 
-/* PIE CHART */
-function renderChart(data){
+/* CHART */
+function draw(data){
   if(chart) chart.destroy();
-  chart = new Chart(
-    document.getElementById("pieChart"),
-    {
-      type:"pie",
-      data:{
-        labels:Object.keys(data),
-        datasets:[{
-          data:Object.values(data),
-          backgroundColor:["#6366f1","#22c55e","#f97316","#ef4444","#06b6d4"]
-        }]
-      },
-      options:{plugins:{legend:{labels:{color:"#fff"}}}}
-    }
-  );
+  chart=new Chart(pieChart,{
+    type:"pie",
+    data:{
+      labels:Object.keys(data),
+      datasets:[{
+        data:Object.values(data),
+        backgroundColor:["#6a7bff","#22c55e","#f97316","#ef4444","#06b6d4"]
+      }]
+    },
+    options:{plugins:{legend:{labels:{color:"#fff"}}}}
+  });
 }
 
-/* EDIT */
-window.editExpense = (id,a,n,c) => {
-  editId = id;
-  amount.value = a;
-  note.value = n;
-  category.value = c;
-  formTitle.innerText = "Edit Expense";
-  saveBtn.innerText = "Update Expense";
-  cancelBtn.style.display = "block";
+window.edit=(id,a,n,c)=>{
+  editId=id;
+  amount.value=a;
+  note.value=n;
+  category.value=c;
+  saveBtn.innerText="Update Expense";
+  formTitle.innerText="Edit Expense";
+  cancelBtn.style.display="block";
 };
 
-/* DELETE */
-window.deleteExpense = async id => {
+window.del=async(id)=>{
   if(confirm("Delete expense?")){
     await deleteDoc(doc(db,"users",uid,"expenses",id));
     load();
   }
 };
 
-/* LOGOUT */
-window.logout = async () => {
+window.logout=async()=>{
   await signOut(auth);
-  window.location.replace("/");
+  location.href="login.html";
 };
 </script>
 
