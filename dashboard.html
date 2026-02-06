@@ -2,293 +2,251 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Dashboard · TrackMyPaisa</title>
+<title>TrackMyPaisa | Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-*{
-  box-sizing:border-box;
-  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto;
-}
+*{box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 body{
-  margin:0;
-  min-height:100vh;
-  background:linear-gradient(180deg,#14162a,#0f1120);
-  color:#fff;
+  margin:0;padding:16px;min-height:100vh;color:#fff;
+  background:radial-gradient(circle at top,#2b2f5c,#050816);
 }
 
-/* CONTAINER */
-.container{
-  max-width:430px;
-  margin:auto;
-  padding:20px 16px 40px;
-}
-
-/* HEADER */
-.header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  background:linear-gradient(135deg,#1c1f3a,#23265a);
-  border-radius:22px;
-  padding:16px;
-  margin-bottom:18px;
-}
-.profile{
-  display:flex;
-  gap:12px;
-  align-items:center;
-}
-.avatar{
-  width:46px;
-  height:46px;
-  border-radius:50%;
-  background:linear-gradient(135deg,#6c7bff,#8f9dff);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-weight:600;
-}
-.header-text small{
-  opacity:.75;
-  font-size:13px;
-}
-.header-text div{
-  font-size:14px;
-  font-weight:500;
-}
-.logout{
-  background:transparent;
-  border:1px solid rgba(255,255,255,.3);
-  color:#fff;
-  padding:8px 14px;
-  border-radius:20px;
-  cursor:pointer;
-}
-
-/* CARD */
+/* cards */
 .card{
-  background:linear-gradient(180deg,#1a1d33,#151728);
+  background:rgba(255,255,255,.08);
+  backdrop-filter:blur(18px);
   border-radius:24px;
   padding:18px;
   margin-bottom:18px;
 }
-.card h3{
-  margin:0 0 14px;
-  font-size:18px;
-}
 
-/* INPUTS */
-input,select{
-  width:100%;
-  padding:14px;
-  margin-bottom:12px;
-  border-radius:16px;
-  border:none;
-  outline:none;
-  background:#fff;
-  font-size:15px;
-}
-
-/* BUTTON */
-.primary-btn{
-  width:100%;
-  padding:14px;
-  border-radius:18px;
-  border:none;
-  font-size:15px;
-  font-weight:600;
-  color:#fff;
-  cursor:pointer;
-  background:linear-gradient(135deg,#6c7bff,#8f9dff);
-}
-
-/* CHART */
-.chart-box{
-  height:240px;
+/* header */
+.header{
   display:flex;
-  justify-content:center;
+  justify-content:space-between;
   align-items:center;
 }
-canvas{
-  max-width:100%;
+.user{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.avatar{
+  width:44px;height:44px;border-radius:50%;
+  background:linear-gradient(135deg,#6366f1,#8b5cf6);
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;
+}
+.logout{
+  border:none;
+  padding:8px 16px;
+  border-radius:999px;
+  background:#ef4444;
+  color:#fff;
+}
+
+/* form */
+input,select{
+  width:100%;
+  margin-top:12px;
+  padding:14px;
+  border:none;
+  border-radius:14px;
+  font-size:15px;
+}
+.save{
+  width:100%;
+  margin-top:16px;
+  padding:14px;
+  border:none;
+  border-radius:999px;
+  background:linear-gradient(135deg,#6a7bff,#9a6bff);
+  color:#fff;
+  font-weight:700;
+}
+
+/* expenses */
+.expense{
+  background:rgba(255,255,255,.08);
+  border-radius:16px;
+  padding:14px;
+  margin-top:12px;
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+}
+.tag{
+  display:inline-block;
+  margin-top:6px;
+  padding:4px 12px;
+  font-size:11px;
+  border-radius:999px;
+  background:#6366f1;
+}
+
+/* total */
+.total{
+  text-align:right;
+  margin-top:14px;
+  font-size:18px;
 }
 </style>
 </head>
 
 <body>
 
-<div class="container">
-
-  <!-- HEADER -->
-  <div class="header">
-    <div class="profile">
-      <div class="avatar" id="avatar">U</div>
-      <div class="header-text">
-        <small id="greet">Hello</small>
-        <div id="userEmail">user@email.com</div>
-      </div>
-    </div>
-    <button class="logout" id="logoutBtn">Logout</button>
-  </div>
-
-  <!-- ADD EXPENSE -->
-  <div class="card">
-    <h3>Add Expense</h3>
-    <input type="number" id="amount" placeholder="Amount ₹">
-    <input type="text" id="note" placeholder="Note">
-    <select id="category">
-      <option>Food</option>
-      <option>Travel</option>
-      <option>Shopping</option>
-      <option>Bills</option>
-      <option>Other</option>
-    </select>
-    <button class="primary-btn" id="addExpense">Save Expense</button>
-  </div>
-
-  <!-- MONTH FILTER -->
-  <div class="card">
-    <select id="monthFilter"></select>
-  </div>
-
-  <!-- CHART -->
-  <div class="card">
-    <h3>Category Breakdown</h3>
-    <div class="chart-box">
-      <canvas id="pieChart"></canvas>
+<!-- HEADER -->
+<div class="card header">
+  <div class="user">
+    <div class="avatar">🙂</div>
+    <div>
+      <div id="greet">Hello</div>
+      <small id="email"></small>
     </div>
   </div>
-
+  <button class="logout" onclick="logout()">Logout</button>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- ADD EXPENSE -->
+<div class="card">
+  <h3>Add Expense</h3>
+  <input id="amount" type="number" placeholder="Amount ₹">
+  <input id="note" placeholder="Note">
+  <select id="category">
+    <option>Food</option>
+    <option>Travel</option>
+    <option>Shopping</option>
+    <option>Bills</option>
+    <option>Other</option>
+  </select>
+  <button class="save" onclick="saveExpense()">Save Expense</button>
+</div>
 
-<script>
-/* 🔥 FIREBASE CONFIG (same project) */
-firebase.initializeApp({
-  apiKey: "YOUR_API_KEY",
-  authDomain: "expense-tracker-b2038.firebaseapp.com",
-  projectId: "expense-tracker-b2038"
-});
+<!-- FILTER -->
+<div class="card">
+  <input type="month" id="monthFilter">
+</div>
 
-const auth = firebase.auth();
-const db = firebase.firestore();
+<!-- CHART -->
+<div class="card">
+  <h3>Category Breakdown</h3>
+  <canvas id="pieChart"></canvas>
+</div>
 
-/* AUTH CHECK */
-auth.onAuthStateChanged(user=>{
-  if(!user){
-    window.location.href="login.html";
-    return;
-  }
+<!-- LIST -->
+<div class="card">
+  <h3>Your Expenses</h3>
+  <div id="list"></div>
+  <div class="total">Total ₹<span id="total">0</span></div>
+</div>
 
-  document.getElementById("userEmail").innerText = user.email;
-  document.getElementById("avatar").innerText = user.email[0].toUpperCase();
+<script type="module">
+import { auth, db } from "./firebase.js";
+import {
+  collection, addDoc, getDocs
+} from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
+import {
+  onAuthStateChanged, signOut
+} from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
 
-  setGreeting();
-  loadMonths(user.uid);
-});
+const amount = document.getElementById("amount");
+const note = document.getElementById("note");
+const category = document.getElementById("category");
+const list = document.getElementById("list");
+const totalEl = document.getElementById("total");
+const emailEl = document.getElementById("email");
+const greetEl = document.getElementById("greet");
+const monthFilter = document.getElementById("monthFilter");
+
+let uid = "", chart;
 
 /* GREETING */
-function setGreeting(){
+function greeting(){
   const h=new Date().getHours();
-  document.getElementById("greet").innerText =
-    h<12?"Good Morning":h<18?"Good Afternoon":"Good Evening";
+  return h<12?"Good Morning ☀️":h<18?"Good Afternoon 🌤️":"Good Evening 🌙";
 }
 
-/* LOGOUT */
-document.getElementById("logoutBtn").onclick=()=>{
-  auth.signOut().then(()=>{
-    window.location.href="login.html";
+/* AUTH */
+onAuthStateChanged(auth,user=>{
+  if(!user){
+    window.location.replace("/");
+    return;
+  }
+  uid=user.uid;
+  emailEl.innerText=user.email;
+  greetEl.innerText=greeting();
+
+  const d=new Date();
+  monthFilter.value=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+  load();
+});
+
+monthFilter.onchange = load;
+
+/* SAVE */
+window.saveExpense = async()=>{
+  if(!amount.value || !note.value){
+    alert("Fill all fields");
+    return;
+  }
+  await addDoc(collection(db,"users",uid,"expenses"),{
+    amount:Number(amount.value),
+    note:note.value,
+    category:category.value,
+    createdAt:Date.now()
   });
+  amount.value="";
+  note.value="";
+  load();
 };
 
-/* ADD EXPENSE */
-document.getElementById("addExpense").onclick=()=>{
-  const user=auth.currentUser;
-  const amt=amount.value;
-  const noteVal=note.value;
-  const cat=category.value;
+/* LOAD */
+async function load(){
+  list.innerHTML="";
+  let total=0, cats={};
+  const [y,m]=monthFilter.value.split("-");
+  const start=new Date(y,m-1,1).getTime();
+  const end=new Date(y,m,1).getTime();
 
-  if(!amt) return alert("Enter amount");
-
-  db.collection("users").doc(user.uid).collection("expenses").add({
-    amount:Number(amt),
-    note:noteVal,
-    category:cat,
-    createdAt:firebase.firestore.FieldValue.serverTimestamp()
-  }).then(()=>{
-    amount.value="";
-    note.value="";
-    loadMonths(user.uid);
+  const snap=await getDocs(collection(db,"users",uid,"expenses"));
+  snap.forEach(d=>{
+    const e=d.data();
+    if(e.createdAt<start||e.createdAt>=end)return;
+    total+=e.amount;
+    cats[e.category]=(cats[e.category]||0)+e.amount;
+    list.innerHTML+=`
+      <div class="expense">
+        <div>₹${e.amount} - ${e.note}<br><span class="tag">${e.category}</span></div>
+      </div>`;
   });
-};
-
-/* LOAD MONTHS */
-function loadMonths(uid){
-  const sel=document.getElementById("monthFilter");
-  sel.innerHTML="";
-  db.collection("users").doc(uid).collection("expenses")
-  .orderBy("createdAt","desc").get().then(snap=>{
-    const months=new Set();
-    snap.forEach(d=>{
-      if(d.data().createdAt){
-        const dt=d.data().createdAt.toDate();
-        months.add(dt.getMonth()+"-"+dt.getFullYear());
-      }
-    });
-    [...months].forEach(m=>{
-      const [mo,yr]=m.split("-");
-      const opt=document.createElement("option");
-      opt.value=m;
-      opt.text=`${new Date(yr,mo).toLocaleString('default',{month:'long'})} ${yr}`;
-      sel.appendChild(opt);
-    });
-    if(sel.value) loadChart(uid,sel.value);
-  });
+  totalEl.innerText=total;
+  renderChart(cats);
 }
-
-document.getElementById("monthFilter").onchange=()=>{
-  loadChart(auth.currentUser.uid,monthFilter.value);
-};
 
 /* CHART */
-let chart;
-function loadChart(uid,key){
-  db.collection("users").doc(uid).collection("expenses").get().then(snap=>{
-    const data={};
-    snap.forEach(d=>{
-      if(!d.data().createdAt) return;
-      const dt=d.data().createdAt.toDate();
-      const k=dt.getMonth()+"-"+dt.getFullYear();
-      if(k!==key) return;
-      data[d.data().category]=(data[d.data().category]||0)+d.data().amount;
-    });
-    renderChart(data);
-  });
-}
-
 function renderChart(data){
   if(chart) chart.destroy();
-  chart=new Chart(document.getElementById("pieChart"),{
+  chart=new Chart(pieChart,{
     type:"pie",
     data:{
       labels:Object.keys(data),
       datasets:[{
         data:Object.values(data),
-        backgroundColor:["#6c7bff","#4cd964","#ff9500","#ff3b30","#9b59b6"]
+        backgroundColor:["#6366f1","#22c55e","#f97316","#ef4444","#06b6d4"]
       }]
     },
-    options:{
-      plugins:{legend:{labels:{color:"#fff"}}}
-    }
+    options:{plugins:{legend:{labels:{color:"#fff"}}}}
   });
 }
+
+/* LOGOUT – FINAL SAFE */
+window.logout = async()=>{
+  await signOut(auth);
+  window.location.replace("/");
+};
 </script>
 
 </body>
