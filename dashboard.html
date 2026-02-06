@@ -1,34 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>TrackMyPaisa | Dashboard</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Dashboard · TrackMyPaisa</title>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <style>
 *{
   box-sizing:border-box;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto;
 }
-
 body{
   margin:0;
-  padding:16px;
   min-height:100vh;
-  background:#0f1220;
+  background:linear-gradient(180deg,#14162a,#0f1120);
   color:#fff;
 }
 
-/* IOS GLASS CARD */
-.card{
-  background:rgba(255,255,255,.08);
-  backdrop-filter:blur(20px);
-  border-radius:24px;
-  padding:18px;
-  margin-bottom:16px;
-  box-shadow:0 10px 30px rgba(0,0,0,.4);
+/* CONTAINER */
+.container{
+  max-width:430px;
+  margin:auto;
+  padding:20px 16px 40px;
 }
 
 /* HEADER */
@@ -36,6 +34,10 @@ body{
   display:flex;
   justify-content:space-between;
   align-items:center;
+  background:linear-gradient(135deg,#1c1f3a,#23265a);
+  border-radius:22px;
+  padding:16px;
+  margin-bottom:18px;
 }
 .profile{
   display:flex;
@@ -43,302 +45,250 @@ body{
   align-items:center;
 }
 .avatar{
-  width:46px;height:46px;
+  width:46px;
+  height:46px;
   border-radius:50%;
-  background:linear-gradient(135deg,#6366f1,#8b5cf6);
+  background:linear-gradient(135deg,#6c7bff,#8f9dff);
   display:flex;
   align-items:center;
   justify-content:center;
-  font-size:22px;
+  font-weight:600;
 }
-.greet{font-size:14px;opacity:.85}
-.email{font-size:12px;opacity:.65}
-
+.header-text small{
+  opacity:.75;
+  font-size:13px;
+}
+.header-text div{
+  font-size:14px;
+  font-weight:500;
+}
 .logout{
-  background:rgba(255,255,255,.18);
-  border:none;
-  padding:8px 14px;
-  border-radius:16px;
+  background:transparent;
+  border:1px solid rgba(255,255,255,.3);
   color:#fff;
+  padding:8px 14px;
+  border-radius:20px;
   cursor:pointer;
 }
 
-/* FORM */
+/* CARD */
+.card{
+  background:linear-gradient(180deg,#1a1d33,#151728);
+  border-radius:24px;
+  padding:18px;
+  margin-bottom:18px;
+}
+.card h3{
+  margin:0 0 14px;
+  font-size:18px;
+}
+
+/* INPUTS */
 input,select{
   width:100%;
   padding:14px;
+  margin-bottom:12px;
   border-radius:16px;
   border:none;
-  margin-top:12px;
+  outline:none;
   background:#fff;
-  color:#000;
   font-size:15px;
 }
 
-.save{
+/* BUTTON */
+.primary-btn{
   width:100%;
-  margin-top:16px;
   padding:14px;
-  border-radius:999px;
+  border-radius:18px;
   border:none;
-  background:#6366f1;
-  color:#fff;
+  font-size:15px;
   font-weight:600;
-  cursor:pointer;
-}
-.cancel{
-  width:100%;
-  margin-top:10px;
-  padding:12px;
-  border-radius:999px;
-  border:none;
-  background:rgba(255,255,255,.15);
   color:#fff;
-  display:none;
+  cursor:pointer;
+  background:linear-gradient(135deg,#6c7bff,#8f9dff);
 }
 
-/* EXPENSE */
-.expense{
-  background:rgba(255,255,255,.06);
-  border-radius:20px;
-  padding:14px;
-  margin-top:12px;
+/* CHART */
+.chart-box{
+  height:240px;
   display:flex;
-  justify-content:space-between;
+  justify-content:center;
+  align-items:center;
 }
-.amount{font-size:18px;font-weight:600}
-.note{font-size:13px;opacity:.8}
-.tag{
-  display:inline-block;
-  margin-top:4px;
-  background:rgba(99,102,241,.25);
-  padding:4px 10px;
-  border-radius:999px;
-  font-size:11px;
-}
-.actions{display:flex;gap:8px}
-.icon{
-  width:34px;height:34px;
-  border-radius:12px;
-  border:none;
-  background:rgba(255,255,255,.2);
-  color:#fff;
-  cursor:pointer;
-}
-
-/* TOTAL */
-.total{
-  text-align:right;
-  margin-top:14px;
-  font-size:20px;
-  font-weight:600;
+canvas{
+  max-width:100%;
 }
 </style>
 </head>
 
 <body>
 
-<!-- HEADER -->
-<div class="card header">
-  <div class="profile">
-    <div class="avatar">🙂</div>
-    <div>
-      <div class="greet" id="greet">Hello</div>
-      <div class="email" id="email">—</div>
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="profile">
+      <div class="avatar" id="avatar">U</div>
+      <div class="header-text">
+        <small id="greet">Hello</small>
+        <div id="userEmail">user@email.com</div>
+      </div>
+    </div>
+    <button class="logout" id="logoutBtn">Logout</button>
+  </div>
+
+  <!-- ADD EXPENSE -->
+  <div class="card">
+    <h3>Add Expense</h3>
+    <input type="number" id="amount" placeholder="Amount ₹">
+    <input type="text" id="note" placeholder="Note">
+    <select id="category">
+      <option>Food</option>
+      <option>Travel</option>
+      <option>Shopping</option>
+      <option>Bills</option>
+      <option>Other</option>
+    </select>
+    <button class="primary-btn" id="addExpense">Save Expense</button>
+  </div>
+
+  <!-- MONTH FILTER -->
+  <div class="card">
+    <select id="monthFilter"></select>
+  </div>
+
+  <!-- CHART -->
+  <div class="card">
+    <h3>Category Breakdown</h3>
+    <div class="chart-box">
+      <canvas id="pieChart"></canvas>
     </div>
   </div>
-  <button class="logout" onclick="logout()">Logout</button>
+
 </div>
 
-<!-- ADD / EDIT -->
-<div class="card">
-  <h3 id="formTitle">Add Expense</h3>
-  <input id="amount" type="number" placeholder="Amount ₹">
-  <input id="note" placeholder="Note">
-  <select id="category">
-    <option>Food</option>
-    <option>Travel</option>
-    <option>Shopping</option>
-    <option>Bills</option>
-    <option>Other</option>
-  </select>
-  <button class="save" id="saveBtn" onclick="saveExpense()">Save Expense</button>
-  <button class="cancel" id="cancelBtn" onclick="cancelEdit()">Cancel</button>
-</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- MONTH -->
-<div class="card">
-  <input type="month" id="monthFilter">
-</div>
-
-<!-- PIE -->
-<div class="card">
-  <canvas id="pieChart"></canvas>
-</div>
-
-<!-- LIST -->
-<div class="card">
-  <h3>Your Expenses</h3>
-  <div id="list"></div>
-  <div class="total">₹<span id="total">0</span></div>
-</div>
-
-<script type="module">
-import { auth, db } from "./firebase.js";
-import { onAuthStateChanged, signOut }
-from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
-import {
-  collection, addDoc, getDocs,
-  deleteDoc, updateDoc, doc
-} from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
-
-/* ELEMENTS */
-const amount=document.getElementById("amount");
-const note=document.getElementById("note");
-const category=document.getElementById("category");
-const list=document.getElementById("list");
-const totalEl=document.getElementById("total");
-const emailEl=document.getElementById("email");
-const greetEl=document.getElementById("greet");
-const saveBtn=document.getElementById("saveBtn");
-const cancelBtn=document.getElementById("cancelBtn");
-const formTitle=document.getElementById("formTitle");
-const monthFilter=document.getElementById("monthFilter");
-
-let uid="", editId=null, chart;
-
-/* GREETING */
-const h=new Date().getHours();
-greetEl.innerText=h<12?"Good Morning ☀️":h<18?"Good Afternoon 🌤️":"Good Evening 🌙";
-
-/* AUTH CHECK */
-onAuthStateChanged(auth,user=>{
-  if(!user){
-    location.replace("/");
-    return;
-  }
-  uid=user.uid;
-  emailEl.innerText=user.email;
-
-  const d=new Date();
-  monthFilter.value=
-    `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
-  load();
+<script>
+/* 🔥 FIREBASE CONFIG (same project) */
+firebase.initializeApp({
+  apiKey: "YOUR_API_KEY",
+  authDomain: "expense-tracker-b2038.firebaseapp.com",
+  projectId: "expense-tracker-b2038"
 });
 
-/* SAVE EXPENSE */
-window.saveExpense=async()=>{
-  if(!amount.value||!note.value){
-    alert("Fill all fields");
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+/* AUTH CHECK */
+auth.onAuthStateChanged(user=>{
+  if(!user){
+    window.location.href="login.html";
     return;
   }
 
-  const data={
-    amount:Number(amount.value),
-    note:note.value,
-    category:category.value,
-    createdAt:Date.now()
-  };
+  document.getElementById("userEmail").innerText = user.email;
+  document.getElementById("avatar").innerText = user.email[0].toUpperCase();
 
-  if(editId){
-    await updateDoc(doc(db,"users",uid,"expenses",editId),data);
-  }else{
-    await addDoc(collection(db,"users",uid,"expenses"),data);
-  }
+  setGreeting();
+  loadMonths(user.uid);
+});
 
-  reset();
-  load();
+/* GREETING */
+function setGreeting(){
+  const h=new Date().getHours();
+  document.getElementById("greet").innerText =
+    h<12?"Good Morning":h<18?"Good Afternoon":"Good Evening";
+}
+
+/* LOGOUT */
+document.getElementById("logoutBtn").onclick=()=>{
+  auth.signOut().then(()=>{
+    window.location.href="login.html";
+  });
 };
 
-function reset(){
-  editId=null;
-  amount.value="";
-  note.value="";
-  saveBtn.innerText="Save Expense";
-  formTitle.innerText="Add Expense";
-  cancelBtn.style.display="none";
-}
-window.cancelEdit=reset;
+/* ADD EXPENSE */
+document.getElementById("addExpense").onclick=()=>{
+  const user=auth.currentUser;
+  const amt=amount.value;
+  const noteVal=note.value;
+  const cat=category.value;
 
-/* LOAD DATA */
-async function load(){
-  list.innerHTML="";
-  let total=0;
-  let cat={};
+  if(!amt) return alert("Enter amount");
 
-  const [y,m]=monthFilter.value.split("-");
-  const start=new Date(y,m-1,1).getTime();
-  const end=new Date(y,m,1).getTime();
-
-  const snap=await getDocs(collection(db,"users",uid,"expenses"));
-  snap.forEach(d=>{
-    const e=d.data();
-    if(e.createdAt<start||e.createdAt>=end) return;
-
-    total+=e.amount;
-    cat[e.category]=(cat[e.category]||0)+e.amount;
-
-    list.innerHTML+=`
-      <div class="expense">
-        <div>
-          <div class="amount">₹${e.amount}</div>
-          <div class="note">${e.note}</div>
-          <span class="tag">${e.category}</span>
-        </div>
-        <div class="actions">
-          <button class="icon"
-            onclick="editExpense('${d.id}',${e.amount},
-            '${e.note}','${e.category}')">✏️</button>
-          <button class="icon"
-            onclick="deleteExpense('${d.id}')">🗑️</button>
-        </div>
-      </div>`;
+  db.collection("users").doc(user.uid).collection("expenses").add({
+    amount:Number(amt),
+    note:noteVal,
+    category:cat,
+    createdAt:firebase.firestore.FieldValue.serverTimestamp()
+  }).then(()=>{
+    amount.value="";
+    note.value="";
+    loadMonths(user.uid);
   });
+};
 
-  totalEl.innerText=total;
-  draw(cat);
+/* LOAD MONTHS */
+function loadMonths(uid){
+  const sel=document.getElementById("monthFilter");
+  sel.innerHTML="";
+  db.collection("users").doc(uid).collection("expenses")
+  .orderBy("createdAt","desc").get().then(snap=>{
+    const months=new Set();
+    snap.forEach(d=>{
+      if(d.data().createdAt){
+        const dt=d.data().createdAt.toDate();
+        months.add(dt.getMonth()+"-"+dt.getFullYear());
+      }
+    });
+    [...months].forEach(m=>{
+      const [mo,yr]=m.split("-");
+      const opt=document.createElement("option");
+      opt.value=m;
+      opt.text=`${new Date(yr,mo).toLocaleString('default',{month:'long'})} ${yr}`;
+      sel.appendChild(opt);
+    });
+    if(sel.value) loadChart(uid,sel.value);
+  });
 }
+
+document.getElementById("monthFilter").onchange=()=>{
+  loadChart(auth.currentUser.uid,monthFilter.value);
+};
 
 /* CHART */
-function draw(data){
+let chart;
+function loadChart(uid,key){
+  db.collection("users").doc(uid).collection("expenses").get().then(snap=>{
+    const data={};
+    snap.forEach(d=>{
+      if(!d.data().createdAt) return;
+      const dt=d.data().createdAt.toDate();
+      const k=dt.getMonth()+"-"+dt.getFullYear();
+      if(k!==key) return;
+      data[d.data().category]=(data[d.data().category]||0)+d.data().amount;
+    });
+    renderChart(data);
+  });
+}
+
+function renderChart(data){
   if(chart) chart.destroy();
-  chart=new Chart(pieChart,{
+  chart=new Chart(document.getElementById("pieChart"),{
     type:"pie",
     data:{
       labels:Object.keys(data),
       datasets:[{
         data:Object.values(data),
-        backgroundColor:["#6366f1","#22c55e","#f97316","#ef4444","#06b6d4"]
+        backgroundColor:["#6c7bff","#4cd964","#ff9500","#ff3b30","#9b59b6"]
       }]
     },
-    options:{plugins:{legend:{labels:{color:"#fff"}}}}
+    options:{
+      plugins:{legend:{labels:{color:"#fff"}}}
+    }
   });
 }
-
-/* EDIT */
-window.editExpense=(id,a,n,c)=>{
-  editId=id;
-  amount.value=a;
-  note.value=n;
-  category.value=c;
-  saveBtn.innerText="Update Expense";
-  formTitle.innerText="Edit Expense";
-  cancelBtn.style.display="block";
-};
-
-/* DELETE */
-window.deleteExpense=async(id)=>{
-  if(confirm("Delete this expense?")){
-    await deleteDoc(doc(db,"users",uid,"expenses",id));
-    load();
-  }
-};
-
-/* LOGOUT (SAFE) */
-window.logout=async()=>{
-  await signOut(auth);
-  location.replace("/");
-};
 </script>
 
 </body>
