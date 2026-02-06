@@ -13,8 +13,6 @@ body{
   margin:0;padding:16px;min-height:100vh;color:#fff;
   background:radial-gradient(circle at top,#2b2f5c,#050816);
 }
-
-/* cards */
 .card{
   background:rgba(255,255,255,.08);
   backdrop-filter:blur(18px);
@@ -22,18 +20,8 @@ body{
   padding:18px;
   margin-bottom:18px;
 }
-
-/* header */
-.header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-.user{
-  display:flex;
-  align-items:center;
-  gap:12px;
-}
+.header{display:flex;justify-content:space-between;align-items:center}
+.user{display:flex;gap:12px;align-items:center}
 .avatar{
   width:44px;height:44px;border-radius:50%;
   background:linear-gradient(135deg,#6366f1,#8b5cf6);
@@ -41,34 +29,25 @@ body{
   font-size:22px;
 }
 .logout{
-  border:none;
-  padding:8px 16px;
-  border-radius:999px;
-  background:#ef4444;
-  color:#fff;
+  border:none;padding:8px 16px;border-radius:999px;
+  background:#ef4444;color:#fff;
 }
-
-/* form */
 input,select{
-  width:100%;
-  margin-top:12px;
-  padding:14px;
-  border:none;
-  border-radius:14px;
-  font-size:15px;
+  width:100%;padding:14px;margin-top:12px;
+  border:none;border-radius:14px;font-size:15px
 }
 .save{
-  width:100%;
-  margin-top:16px;
-  padding:14px;
-  border:none;
-  border-radius:999px;
+  width:100%;margin-top:16px;padding:14px;
+  border:none;border-radius:999px;
   background:linear-gradient(135deg,#6a7bff,#9a6bff);
-  color:#fff;
-  font-weight:700;
+  color:#fff;font-weight:700
 }
-
-/* expenses */
+.cancel{
+  width:100%;margin-top:10px;padding:12px;
+  border:none;border-radius:999px;
+  background:rgba(255,255,255,.15);
+  color:#fff;display:none
+}
 .expense{
   background:rgba(255,255,255,.08);
   border-radius:16px;
@@ -76,23 +55,21 @@ input,select{
   margin-top:12px;
   display:flex;
   justify-content:space-between;
-  gap:10px;
+  gap:10px
 }
+.actions{display:flex;gap:8px}
+.icon{
+  width:36px;height:36px;border-radius:12px;
+  border:none;font-size:16px
+}
+.edit{background:rgba(99,102,241,.25);color:#c7d2fe}
+.delete{background:rgba(239,68,68,.3);color:#fecaca}
 .tag{
-  display:inline-block;
-  margin-top:6px;
-  padding:4px 12px;
-  font-size:11px;
-  border-radius:999px;
-  background:#6366f1;
+  display:inline-block;margin-top:6px;
+  padding:4px 12px;font-size:11px;
+  border-radius:999px;background:#6366f1
 }
-
-/* total */
-.total{
-  text-align:right;
-  margin-top:14px;
-  font-size:18px;
-}
+.total{text-align:right;margin-top:14px;font-size:18px}
 </style>
 </head>
 
@@ -110,9 +87,9 @@ input,select{
   <button class="logout" onclick="logout()">Logout</button>
 </div>
 
-<!-- ADD EXPENSE -->
+<!-- FORM -->
 <div class="card">
-  <h3>Add Expense</h3>
+  <h3 id="formTitle">Add Expense</h3>
   <input id="amount" type="number" placeholder="Amount ₹">
   <input id="note" placeholder="Note">
   <select id="category">
@@ -122,7 +99,8 @@ input,select{
     <option>Bills</option>
     <option>Other</option>
   </select>
-  <button class="save" onclick="saveExpense()">Save Expense</button>
+  <button class="save" id="saveBtn" onclick="saveExpense()">Save Expense</button>
+  <button class="cancel" id="cancelBtn" onclick="cancelEdit()">Cancel Edit</button>
 </div>
 
 <!-- FILTER -->
@@ -146,61 +124,68 @@ input,select{
 <script type="module">
 import { auth, db } from "./firebase.js";
 import {
-  collection, addDoc, getDocs
+  collection, addDoc, getDocs,
+  deleteDoc, updateDoc, doc
 } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
 import {
   onAuthStateChanged, signOut
 } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
 
-const amount = document.getElementById("amount");
-const note = document.getElementById("note");
-const category = document.getElementById("category");
-const list = document.getElementById("list");
-const totalEl = document.getElementById("total");
-const emailEl = document.getElementById("email");
-const greetEl = document.getElementById("greet");
-const monthFilter = document.getElementById("monthFilter");
+const amount=document.getElementById("amount");
+const note=document.getElementById("note");
+const category=document.getElementById("category");
+const list=document.getElementById("list");
+const totalEl=document.getElementById("total");
+const emailEl=document.getElementById("email");
+const greetEl=document.getElementById("greet");
+const monthFilter=document.getElementById("monthFilter");
+const formTitle=document.getElementById("formTitle");
+const saveBtn=document.getElementById("saveBtn");
+const cancelBtn=document.getElementById("cancelBtn");
 
-let uid = "", chart;
+let uid="", editId=null, chart;
 
-/* GREETING */
-function greeting(){
+const greeting=()=>{
   const h=new Date().getHours();
   return h<12?"Good Morning ☀️":h<18?"Good Afternoon 🌤️":"Good Evening 🌙";
-}
+};
 
-/* AUTH */
 onAuthStateChanged(auth,user=>{
-  if(!user){
-    window.location.replace("/");
-    return;
-  }
+  if(!user){location.replace("/");return;}
   uid=user.uid;
   emailEl.innerText=user.email;
   greetEl.innerText=greeting();
-
   const d=new Date();
   monthFilter.value=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
   load();
 });
 
-monthFilter.onchange = load;
+monthFilter.onchange=load;
 
-/* SAVE */
-window.saveExpense = async()=>{
-  if(!amount.value || !note.value){
-    alert("Fill all fields");
-    return;
-  }
-  await addDoc(collection(db,"users",uid,"expenses"),{
+/* SAVE / UPDATE */
+window.saveExpense=async()=>{
+  if(!amount.value||!note.value)return alert("Fill all fields");
+  const data={
     amount:Number(amount.value),
     note:note.value,
     category:category.value,
     createdAt:Date.now()
-  });
-  amount.value="";
-  note.value="";
+  };
+  if(editId){
+    await updateDoc(doc(db,"users",uid,"expenses",editId),data);
+  }else{
+    await addDoc(collection(db,"users",uid,"expenses"),data);
+  }
+  cancelEdit();
   load();
+};
+
+window.cancelEdit=()=>{
+  editId=null;
+  amount.value="";note.value="";
+  formTitle.innerText="Add Expense";
+  saveBtn.innerText="Save Expense";
+  cancelBtn.style.display="none";
 };
 
 /* LOAD */
@@ -217,18 +202,43 @@ async function load(){
     if(e.createdAt<start||e.createdAt>=end)return;
     total+=e.amount;
     cats[e.category]=(cats[e.category]||0)+e.amount;
+
     list.innerHTML+=`
       <div class="expense">
         <div>₹${e.amount} - ${e.note}<br><span class="tag">${e.category}</span></div>
+        <div class="actions">
+          <button class="icon edit" onclick="editExpense('${d.id}',${e.amount},'${e.note}','${e.category}')">✏️</button>
+          <button class="icon delete" onclick="delExpense('${d.id}')">🗑️</button>
+        </div>
       </div>`;
   });
+
   totalEl.innerText=total;
   renderChart(cats);
 }
 
+/* EDIT */
+window.editExpense=(id,a,n,c)=>{
+  editId=id;
+  amount.value=a;
+  note.value=n;
+  category.value=c;
+  formTitle.innerText="Edit Expense";
+  saveBtn.innerText="Update Expense";
+  cancelBtn.style.display="block";
+};
+
+/* DELETE */
+window.delExpense=async(id)=>{
+  if(confirm("Delete expense?")){
+    await deleteDoc(doc(db,"users",uid,"expenses",id));
+    load();
+  }
+};
+
 /* CHART */
 function renderChart(data){
-  if(chart) chart.destroy();
+  if(chart)chart.destroy();
   chart=new Chart(pieChart,{
     type:"pie",
     data:{
@@ -242,10 +252,10 @@ function renderChart(data){
   });
 }
 
-/* LOGOUT – FINAL SAFE */
-window.logout = async()=>{
+/* LOGOUT */
+window.logout=async()=>{
   await signOut(auth);
-  window.location.replace("/");
+  location.replace("/");
 };
 </script>
 
