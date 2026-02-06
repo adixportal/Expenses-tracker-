@@ -23,7 +23,7 @@ body{
 .header{display:flex;justify-content:space-between;align-items:center}
 .logout{
   background:#ef4444;color:#fff;border:none;
-  padding:8px 16px;border-radius:999px
+  padding:8px 16px;border-radius:999px;cursor:pointer
 }
 input,select{
   width:100%;padding:14px;border:none;
@@ -33,12 +33,13 @@ input,select{
   width:100%;margin-top:14px;padding:14px;
   border:none;border-radius:999px;
   background:linear-gradient(135deg,#6a7bff,#9a6bff);
-  color:#fff;font-weight:700
+  color:#fff;font-weight:700;cursor:pointer
 }
 .cancel{
   margin-top:8px;width:100%;
   padding:12px;border:none;border-radius:999px;
-  background:rgba(255,255,255,.15);color:#fff;display:none
+  background:rgba(255,255,255,.2);color:#fff;
+  display:none;cursor:pointer
 }
 .expense{
   background:rgba(255,255,255,.08);
@@ -52,7 +53,8 @@ input,select{
 }
 .actions{display:flex;gap:8px}
 .icon{
-  width:36px;height:36px;border:none;border-radius:12px
+  width:36px;height:36px;border:none;border-radius:12px;
+  cursor:pointer
 }
 .edit{background:rgba(99,102,241,.25);color:#c7d2fe}
 .delete{background:rgba(239,68,68,.3);color:#fecaca}
@@ -64,7 +66,7 @@ input,select{
 
 <!-- HEADER -->
 <div class="card header">
-  <div id="email">—</div>
+  <div id="email">Loading...</div>
   <button class="logout" onclick="logout()">Logout</button>
 </div>
 
@@ -109,115 +111,161 @@ import {
   collection, addDoc, getDocs,
   deleteDoc, updateDoc, doc
 } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
-import { onAuthStateChanged, signOut } from
-  "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
+import {
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
 
-/* DOM — FIXED (NO NULL BUG) */
-const amount=document.getElementById("amount");
-const note=document.getElementById("note");
-const category=document.getElementById("category");
-const list=document.getElementById("list");
-const totalEl=document.getElementById("total");
-const emailEl=document.getElementById("email");
-const saveBtn=document.getElementById("saveBtn");
-const cancelBtn=document.getElementById("cancelBtn");
-const formTitle=document.getElementById("formTitle");
-const monthFilter=document.getElementById("monthFilter");
+const amount = document.getElementById("amount");
+const note = document.getElementById("note");
+const category = document.getElementById("category");
+const list = document.getElementById("list");
+const totalEl = document.getElementById("total");
+const emailEl = document.getElementById("email");
+const saveBtn = document.getElementById("saveBtn");
+const cancelBtn = document.getElementById("cancelBtn");
+const formTitle = document.getElementById("formTitle");
+const monthFilter = document.getElementById("monthFilter");
 
-let uid="", editId=null, chart;
+let uid = "", editId = null, chart;
 
 /* AUTH */
-onAuthStateChanged(auth,user=>{
-  if(!user) location.href="login.html";
-  uid=user.uid;
-  emailEl.innerText=user.email;
+onAuthStateChanged(auth, user => {
+  if (!user) {
+    window.location.replace("/");
+    return;
+  }
+  uid = user.uid;
+  emailEl.innerText = user.email;
 
-  const d=new Date();
-  monthFilter.value=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+  const d = new Date();
+  monthFilter.value =
+    `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+
   load();
 });
 
-monthFilter.onchange=load;
+monthFilter.onchange = load;
 
-/* SAVE */
-window.saveExpense=async()=>{
-  if(!amount.value||!note.value) return alert("Fill all fields");
-  const data={
-    amount:Number(amount.value),
-    note:note.value,
-    category:category.value,
-    createdAt:Date.now()
-  };
-  if(editId){
-    await updateDoc(doc(db,"users",uid,"expenses",editId),data);
-  }else{
-    await addDoc(collection(db,"users",uid,"expenses"),data);
+/* SAVE EXPENSE */
+window.saveExpense = async () => {
+  if (!amount.value || !note.value) {
+    alert("Fill all fields");
+    return;
   }
-  resetForm();
-  load();
+
+  try {
+    const data = {
+      amount: Number(amount.value),
+      note: note.value,
+      category: category.value,
+      createdAt: Date.now()
+    };
+
+    if (editId) {
+      await updateDoc(
+        doc(db,"users",uid,"expenses",editId),
+        data
+      );
+    } else {
+      await addDoc(
+        collection(db,"users",uid,"expenses"),
+        data
+      );
+    }
+
+    resetForm();
+    load();
+
+  } catch (e) {
+    alert("Expense add nahi hua ❌\n" + e.message);
+  }
 };
 
-/* RESET / CANCEL */
+/* RESET */
 function resetForm(){
-  editId=null;
-  amount.value="";note.value="";
-  formTitle.innerText="Add Expense";
-  saveBtn.innerText="Save Expense";
-  cancelBtn.style.display="none";
+  editId = null;
+  amount.value = "";
+  note.value = "";
+  formTitle.innerText = "Add Expense";
+  saveBtn.innerText = "Save Expense";
+  cancelBtn.style.display = "none";
 }
-window.cancelEdit=resetForm;
+window.cancelEdit = resetForm;
 
-/* LOAD */
+/* LOAD DATA */
 async function load(){
-  list.innerHTML="";let total=0, cat={};
-  const [y,m]=monthFilter.value.split("-");
-  const start=new Date(y,m-1,1).getTime();
-  const end=new Date(y,m,1).getTime();
+  list.innerHTML="";
+  let total = 0;
+  let cat = {};
 
-  const snap=await getDocs(collection(db,"users",uid,"expenses"));
+  const [y,m] = monthFilter.value.split("-");
+  const start = new Date(y,m-1,1).getTime();
+  const end = new Date(y,m,1).getTime();
+
+  const snap = await getDocs(
+    collection(db,"users",uid,"expenses")
+  );
+
   snap.forEach(d=>{
-    const e=d.data();
-    if(e.createdAt<start||e.createdAt>=end) return;
-    total+=e.amount;
-    cat[e.category]=(cat[e.category]||0)+e.amount;
-    list.innerHTML+=`
-    <div class="expense">
-      <div>₹${e.amount} - ${e.note}<br><span class="tag">${e.category}</span></div>
-      <div class="actions">
-        <button class="icon edit" onclick="edit('${d.id}',${e.amount},'${e.note}','${e.category}')">✎</button>
-        <button class="icon delete" onclick="del('${d.id}')">✕</button>
-      </div>
-    </div>`;
+    const e = d.data();
+    if(e.createdAt < start || e.createdAt >= end) return;
+
+    total += e.amount;
+    cat[e.category] = (cat[e.category] || 0) + e.amount;
+
+    list.innerHTML += `
+      <div class="expense">
+        <div>
+          ₹${e.amount} - ${e.note}<br>
+          <span class="tag">${e.category}</span>
+        </div>
+        <div class="actions">
+          <button class="icon edit"
+            onclick="editExpense('${d.id}',${e.amount},
+            '${e.note.replace(/'/g,"\\'")}','${e.category}')">✎</button>
+          <button class="icon delete"
+            onclick="deleteExpense('${d.id}')">✕</button>
+        </div>
+      </div>`;
   });
-  totalEl.innerText=total;
+
+  totalEl.innerText = total;
   renderChart(cat);
 }
 
-/* CHART */
+/* PIE CHART */
 function renderChart(data){
   if(chart) chart.destroy();
-  chart=new Chart(pieChart,{
-    type:"pie",
-    data:{labels:Object.keys(data),
-    datasets:[{data:Object.values(data),
-      backgroundColor:["#6366f1","#22c55e","#f97316","#ef4444","#06b6d4"]}]},
-    options:{plugins:{legend:{labels:{color:"#fff"}}}}
-  });
+  chart = new Chart(
+    document.getElementById("pieChart"),
+    {
+      type:"pie",
+      data:{
+        labels:Object.keys(data),
+        datasets:[{
+          data:Object.values(data),
+          backgroundColor:["#6366f1","#22c55e","#f97316","#ef4444","#06b6d4"]
+        }]
+      },
+      options:{plugins:{legend:{labels:{color:"#fff"}}}}
+    }
+  );
 }
 
 /* EDIT */
-window.edit=(id,a,n,c)=>{
-  editId=id;
-  amount.value=a;
-  note.value=n;
-  category.value=c;
-  formTitle.innerText="Edit Expense";
-  saveBtn.innerText="Update Expense";
-  cancelBtn.style.display="block";
+window.editExpense = (id,a,n,c) => {
+  editId = id;
+  amount.value = a;
+  note.value = n;
+  category.value = c;
+  formTitle.innerText = "Edit Expense";
+  saveBtn.innerText = "Update Expense";
+  cancelBtn.style.display = "block";
 };
 
 /* DELETE */
-window.del=async(id)=>{
+window.deleteExpense = async id => {
   if(confirm("Delete expense?")){
     await deleteDoc(doc(db,"users",uid,"expenses",id));
     load();
@@ -225,9 +273,9 @@ window.del=async(id)=>{
 };
 
 /* LOGOUT */
-window.logout=async()=>{
+window.logout = async () => {
   await signOut(auth);
-  location.href="login.html";
+  window.location.replace("/");
 };
 </script>
 
