@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Expense Tracker | Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+*{box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+body{
+  margin:0;min-height:100vh;padding:16px;color:#fff;
+  background:radial-gradient(circle at top,#3a2f7d,#050816);
+}
+.card{
+  background:rgba(255,255,255,.08);
+  backdrop-filter:blur(18px);
+  border-radius:22px;
+  padding:18px;
+  margin-bottom:16px;
+}
+.header{display:flex;justify-content:space-between;align-items:center}
+.logout{
+  background:#ef4444;color:#fff;border:none;
+  padding:8px 16px;border-radius:999px
+}
+input,select{
+  width:100%;padding:14px;border:none;
+  border-radius:14px;margin-top:10px
+}
+.save{
+  width:100%;margin-top:14px;padding:14px;
+  border:none;border-radius:999px;
+  background:linear-gradient(135deg,#6a7bff,#9a6bff);
+  color:#fff;font-weight:700
+}
+.cancel{
+  margin-top:8px;width:100%;
+  padding:12px;border:none;border-radius:999px;
+  background:rgba(255,255,255,.15);color:#fff;display:none
+}
+.expense{
+  background:rgba(255,255,255,.08);
+  border-radius:16px;
+  padding:14px;margin-top:12px;
+  display:flex;justify-content:space-between;gap:10px
+}
+.tag{
+  background:#6366f1;
+  padding:4px 12px;border-radius:999px;font-size:11px
+}
+.actions{display:flex;gap:8px}
+.icon{
+  width:36px;height:36px;border:none;border-radius:12px
+}
+.edit{background:rgba(99,102,241,.25);color:#c7d2fe}
+.delete{background:rgba(239,68,68,.3);color:#fecaca}
+.total{text-align:right;margin-top:14px;font-size:18px}
+</style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<div class="card header">
+  <div id="email">—</div>
+  <button class="logout" onclick="logout()">Logout</button>
+</div>
+
+<!-- ADD / EDIT -->
+<div class="card">
+  <h3 id="formTitle">Add Expense</h3>
+  <input id="amount" type="number" placeholder="Amount ₹">
+  <input id="note" placeholder="Note">
+  <select id="category">
+    <option>Food</option>
+    <option>Travel</option>
+    <option>Shopping</option>
+    <option>Bills</option>
+    <option>Other</option>
+  </select>
+  <button class="save" id="saveBtn" onclick="saveExpense()">Save Expense</button>
+  <button class="cancel" id="cancelBtn" onclick="cancelEdit()">Cancel Edit</button>
+</div>
+
+<!-- MONTH -->
+<div class="card">
+  <h3>Filter by Month</h3>
+  <input type="month" id="monthFilter">
+</div>
+
+<!-- CHART -->
+<div class="card">
+  <h3>Category Breakdown</h3>
+  <canvas id="pieChart"></canvas>
+</div>
+
+<!-- LIST -->
+<div class="card">
+  <h3>Your Expenses</h3>
+  <div id="list"></div>
+  <div class="total">Total ₹<span id="total">0</span></div>
+</div>
+
+<script type="module">
+import { auth, db } from "./firebase.js";
+import {
+  collection, addDoc, getDocs,
+  deleteDoc, updateDoc, doc
+} from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
+import { onAuthStateChanged, signOut } from
+  "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
+
+/* DOM — FIXED (NO NULL BUG) */
+const amount=document.getElementById("amount");
+const note=document.getElementById("note");
+const category=document.getElementById("category");
+const list=document.getElementById("list");
+const totalEl=document.getElementById("total");
+const emailEl=document.getElementById("email");
+const saveBtn=document.getElementById("saveBtn");
+const cancelBtn=document.getElementById("cancelBtn");
+const formTitle=document.getElementById("formTitle");
+const monthFilter=document.getElementById("monthFilter");
+
+let uid="", editId=null, chart;
+
+/* AUTH */
+onAuthStateChanged(auth,user=>{
+  if(!user) location.href="login.html";
+  uid=user.uid;
+  emailEl.innerText=user.email;
+
+  const d=new Date();
+  monthFilter.value=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+  load();
+});
+
+monthFilter.onchange=load;
+
+/* SAVE */
+window.saveExpense=async()=>{
+  if(!amount.value||!note.value) return alert("Fill all fields");
+  const data={
+    amount:Number(amount.value),
+    note:note.value,
+    category:category.value,
+    createdAt:Date.now()
+  };
+  if(editId){
+    await updateDoc(doc(db,"users",uid,"expenses",editId),data);
+  }else{
+    await addDoc(collection(db,"users",uid,"expenses"),data);
+  }
+  resetForm();
+  load();
+};
+
+/* RESET / CANCEL */
+function resetForm(){
+  editId=null;
+  amount.value="";note.value="";
+  formTitle.innerText="Add Expense";
+  saveBtn.innerText="Save Expense";
+  cancelBtn.style.display="none";
+}
+window.cancelEdit=resetForm;
+
+/* LOAD */
+async function load(){
+  list.innerHTML="";let total=0, cat={};
+  const [y,m]=monthFilter.value.split("-");
+  const start=new Date(y,m-1,1).getTime();
+  const end=new Date(y,m,1).getTime();
+
+  const snap=await getDocs(collection(db,"users",uid,"expenses"));
+  snap.forEach(d=>{
+    const e=d.data();
+    if(e.createdAt<start||e.createdAt>=end) return;
+    total+=e.amount;
+    cat[e.category]=(cat[e.category]||0)+e.amount;
+    list.innerHTML+=`
+    <div class="expense">
+      <div>₹${e.amount} - ${e.note}<br><span class="tag">${e.category}</span></div>
+      <div class="actions">
+        <button class="icon edit" onclick="edit('${d.id}',${e.amount},'${e.note}','${e.category}')">✎</button>
+        <button class="icon delete" onclick="del('${d.id}')">✕</button>
+      </div>
+    </div>`;
+  });
+  totalEl.innerText=total;
+  renderChart(cat);
+}
+
+/* CHART */
+function renderChart(data){
+  if(chart) chart.destroy();
+  chart=new Chart(pieChart,{
+    type:"pie",
+    data:{labels:Object.keys(data),
+    datasets:[{data:Object.values(data),
+      backgroundColor:["#6366f1","#22c55e","#f97316","#ef4444","#06b6d4"]}]},
+    options:{plugins:{legend:{labels:{color:"#fff"}}}}
+  });
+}
+
+/* EDIT */
+window.edit=(id,a,n,c)=>{
+  editId=id;
+  amount.value=a;
+  note.value=n;
+  category.value=c;
+  formTitle.innerText="Edit Expense";
+  saveBtn.innerText="Update Expense";
+  cancelBtn.style.display="block";
+};
+
+/* DELETE */
+window.del=async(id)=>{
+  if(confirm("Delete expense?")){
+    await deleteDoc(doc(db,"users",uid,"expenses",id));
+    load();
+  }
+};
+
+/* LOGOUT */
+window.logout=async()=>{
+  await signOut(auth);
+  location.href="login.html";
+};
+</script>
+
+</body>
+</html>

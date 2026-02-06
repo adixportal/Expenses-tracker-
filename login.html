@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Expense Tracker | Login</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+*{box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+body{
+  margin:0;height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(circle at top,#3a2f7d,#050816);
+  color:#fff;
+}
+.card{
+  width:100%;max-width:360px;
+  background:rgba(255,255,255,.08);
+  backdrop-filter:blur(18px);
+  border-radius:22px;
+  padding:26px;
+}
+.logo{text-align:center;font-size:26px;font-weight:800}
+.sub{text-align:center;color:#cbd5e1;font-size:14px;margin-bottom:22px}
+input{
+  width:100%;padding:14px;border:none;border-radius:14px;
+  margin-bottom:14px;font-size:15px
+}
+.input-wrap{position:relative}
+.toggle{
+  position:absolute;right:14px;top:14px;
+  font-size:13px;color:#a5b4fc;cursor:pointer
+}
+.forgot{
+  text-align:right;margin-top:-6px;margin-bottom:16px;
+  font-size:13px;color:#a5b4fc;cursor:pointer
+}
+.btn{
+  width:100%;padding:14px;border:none;border-radius:999px;
+  font-size:16px;font-weight:700;cursor:pointer
+}
+.primary{
+  background:linear-gradient(135deg,#6a7bff,#9a6bff);
+  color:#fff;margin-bottom:12px
+}
+.secondary{
+  background:rgba(255,255,255,.15);color:#fff
+}
+.spinner{
+  width:18px;height:18px;border:2px solid rgba(255,255,255,.4);
+  border-top-color:#fff;border-radius:50%;
+  animation:spin .8s linear infinite;
+  display:none;margin:auto
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.footer{text-align:center;margin-top:18px;font-size:13px;color:#cbd5e1}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+  <div class="logo">💸 Expense Tracker</div>
+  <div class="sub">Login to manage your expenses</div>
+
+  <input id="email" type="email" placeholder="Email">
+
+  <div class="input-wrap">
+    <input id="password" type="password" placeholder="Password">
+    <span class="toggle" onclick="togglePassword()">Show</span>
+  </div>
+
+  <div class="forgot" onclick="forgotPassword()">Forgot password?</div>
+
+  <button class="btn primary" onclick="login()">
+    <span id="btnText">Login</span>
+    <div class="spinner" id="spinner"></div>
+  </button>
+
+  <button class="btn secondary" onclick="signup()">Create Account</button>
+
+  <div class="footer">Secure login · Smooth experience</div>
+</div>
+
+<script type="module">
+import { auth, db } from "./firebase.js";
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
+import {
+  doc, setDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
+
+const email=document.getElementById("email");
+const password=document.getElementById("password");
+const spinner=document.getElementById("spinner");
+const btnText=document.getElementById("btnText");
+
+function loading(on){
+  spinner.style.display = on ? "block" : "none";
+  btnText.style.display = on ? "none" : "inline";
+}
+
+/* 🔐 AUTH STATE → SAFE REDIRECT */
+onAuthStateChanged(auth,user=>{
+  if(user){
+    location.replace("dashboard.html");
+  }
+});
+
+/* LOGIN */
+window.login = async () => {
+  if(!email.value || !password.value){
+    alert("Fill all fields");
+    return;
+  }
+  loading(true);
+  try{
+    await signInWithEmailAndPassword(auth,email.value,password.value);
+    // redirect handled by onAuthStateChanged
+  }catch(e){
+    alert(e.message);
+    loading(false);
+  }
+};
+
+/* SIGNUP + FIRESTORE USER CREATE */
+window.signup = async () => {
+  if(!email.value || !password.value){
+    alert("Fill all fields");
+    return;
+  }
+  loading(true);
+  try{
+    const res = await createUserWithEmailAndPassword(
+      auth,
+      email.value,
+      password.value
+    );
+
+    const user = res.user;
+
+    // ✅ CREATE USER DOC IN FIRESTORE
+    await setDoc(doc(db,"users",user.uid),{
+      email: user.email,
+      name: user.email.split("@")[0],
+      createdAt: serverTimestamp()
+    });
+
+    // redirect handled by onAuthStateChanged
+  }catch(e){
+    alert(e.message);
+    loading(false);
+  }
+};
+
+/* SHOW / HIDE */
+window.togglePassword = ()=>{
+  password.type = password.type==="password"?"text":"password";
+};
+
+/* FORGOT */
+window.forgotPassword = async ()=>{
+  if(!email.value) return alert("Enter email first");
+  await sendPasswordResetEmail(auth,email.value);
+  alert("Reset link sent 📩");
+};
+</script>
+
+</body>
+</html>
