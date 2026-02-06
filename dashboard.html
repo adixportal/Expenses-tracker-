@@ -1,75 +1,146 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8">
 <title>TrackMyPaisa | Dashboard</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 *{box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+
 body{
-  margin:0;padding:16px;min-height:100vh;color:#fff;
-  background:radial-gradient(circle at top,#2b2f5c,#050816);
-}
-.card{
-  background:rgba(255,255,255,.08);
-  backdrop-filter:blur(18px);
-  border-radius:24px;
+  margin:0;
   padding:18px;
+  min-height:100vh;
+  color:#fff;
+  background:radial-gradient(circle at top,#6b63ff,#120a2a);
+}
+
+/* GLASS CARD */
+.card{
+  background:rgba(255,255,255,.14);
+  backdrop-filter:blur(22px);
+  border-radius:26px;
+  padding:20px;
   margin-bottom:18px;
+  box-shadow:0 20px 40px rgba(0,0,0,.25);
 }
-.header{display:flex;justify-content:space-between;align-items:center}
-.user{display:flex;gap:12px;align-items:center}
-.avatar{
-  width:44px;height:44px;border-radius:50%;
-  background:linear-gradient(135deg,#6366f1,#8b5cf6);
-  display:flex;align-items:center;justify-content:center;
-  font-size:22px;
-}
-.logout{
-  border:none;padding:8px 16px;border-radius:999px;
-  background:#ef4444;color:#fff;
-}
-input,select{
-  width:100%;padding:14px;margin-top:12px;
-  border:none;border-radius:14px;font-size:15px
-}
-.save{
-  width:100%;margin-top:16px;padding:14px;
-  border:none;border-radius:999px;
-  background:linear-gradient(135deg,#6a7bff,#9a6bff);
-  color:#fff;font-weight:700
-}
-.cancel{
-  width:100%;margin-top:10px;padding:12px;
-  border:none;border-radius:999px;
-  background:rgba(255,255,255,.15);
-  color:#fff;display:none
-}
-.expense{
-  background:rgba(255,255,255,.08);
-  border-radius:16px;
-  padding:14px;
-  margin-top:12px;
+
+/* HEADER */
+.header{
   display:flex;
   justify-content:space-between;
-  gap:10px
+  align-items:center;
 }
-.actions{display:flex;gap:8px}
-.icon{
-  width:36px;height:36px;border-radius:12px;
-  border:none;font-size:16px
+
+.user{
+  display:flex;
+  gap:14px;
+  align-items:center;
 }
-.edit{background:rgba(99,102,241,.25);color:#c7d2fe}
-.delete{background:rgba(239,68,68,.3);color:#fecaca}
+
+.avatar{
+  width:52px;
+  height:52px;
+  border-radius:50%;
+  background:linear-gradient(135deg,#7c7cff,#a855f7);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:26px;
+}
+
+.logout{
+  border:none;
+  padding:10px 18px;
+  border-radius:999px;
+  background:rgba(255,255,255,.2);
+  color:#fff;
+}
+
+/* FORM */
+input,select{
+  width:100%;
+  padding:16px;
+  margin-top:14px;
+  border:none;
+  border-radius:18px;
+  font-size:16px;
+}
+
+.save{
+  width:100%;
+  margin-top:18px;
+  padding:16px;
+  border:none;
+  border-radius:999px;
+  background:linear-gradient(135deg,#7c7cff,#a855f7);
+  color:#fff;
+  font-weight:700;
+}
+
+.cancel{
+  width:100%;
+  margin-top:10px;
+  padding:14px;
+  border:none;
+  border-radius:999px;
+  background:rgba(255,255,255,.2);
+  color:#fff;
+  display:none;
+}
+
+/* EXPENSE LIST */
+.expense{
+  background:rgba(255,255,255,.12);
+  border-radius:20px;
+  padding:16px;
+  margin-top:14px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
 .tag{
-  display:inline-block;margin-top:6px;
-  padding:4px 12px;font-size:11px;
-  border-radius:999px;background:#6366f1
+  display:inline-block;
+  margin-top:6px;
+  padding:4px 14px;
+  border-radius:999px;
+  font-size:12px;
+  background:rgba(255,255,255,.25);
 }
-.total{text-align:right;margin-top:14px;font-size:18px}
+
+.actions{
+  display:flex;
+  gap:10px;
+}
+
+.icon{
+  width:40px;
+  height:40px;
+  border-radius:14px;
+  border:none;
+  font-size:18px;
+}
+
+.edit{
+  background:rgba(124,124,255,.25);
+  color:#e0e7ff;
+}
+
+.delete{
+  background:rgba(239,68,68,.35);
+  color:#fee2e2;
+}
+
+.total{
+  text-align:right;
+  margin-top:18px;
+  font-size:20px;
+  font-weight:700;
+}
 </style>
 </head>
 
@@ -80,16 +151,16 @@ input,select{
   <div class="user">
     <div class="avatar">🙂</div>
     <div>
-      <div id="greet">Hello</div>
+      <div id="greet">Good Evening 🌙</div>
       <small id="email"></small>
     </div>
   </div>
   <button class="logout" onclick="logout()">Logout</button>
 </div>
 
-<!-- FORM -->
+<!-- ADD EXPENSE -->
 <div class="card">
-  <h3 id="formTitle">Add Expense</h3>
+  <h2 id="formTitle">Add Expense</h2>
   <input id="amount" type="number" placeholder="Amount ₹">
   <input id="note" placeholder="Note">
   <select id="category">
@@ -99,6 +170,7 @@ input,select{
     <option>Bills</option>
     <option>Other</option>
   </select>
+
   <button class="save" id="saveBtn" onclick="saveExpense()">Save Expense</button>
   <button class="cancel" id="cancelBtn" onclick="cancelEdit()">Cancel Edit</button>
 </div>
@@ -110,7 +182,6 @@ input,select{
 
 <!-- CHART -->
 <div class="card">
-  <h3>Category Breakdown</h3>
   <canvas id="pieChart"></canvas>
 </div>
 
@@ -131,30 +202,24 @@ import {
   onAuthStateChanged, signOut
 } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
 
-const amount=document.getElementById("amount");
-const note=document.getElementById("note");
-const category=document.getElementById("category");
-const list=document.getElementById("list");
-const totalEl=document.getElementById("total");
-const emailEl=document.getElementById("email");
-const greetEl=document.getElementById("greet");
-const monthFilter=document.getElementById("monthFilter");
-const formTitle=document.getElementById("formTitle");
-const saveBtn=document.getElementById("saveBtn");
-const cancelBtn=document.getElementById("cancelBtn");
+const amount = document.getElementById("amount");
+const note = document.getElementById("note");
+const category = document.getElementById("category");
+const list = document.getElementById("list");
+const totalEl = document.getElementById("total");
+const emailEl = document.getElementById("email");
+const greetEl = document.getElementById("greet");
+const monthFilter = document.getElementById("monthFilter");
+const formTitle = document.getElementById("formTitle");
+const saveBtn = document.getElementById("saveBtn");
+const cancelBtn = document.getElementById("cancelBtn");
 
 let uid="", editId=null, chart;
 
-const greeting=()=>{
-  const h=new Date().getHours();
-  return h<12?"Good Morning ☀️":h<18?"Good Afternoon 🌤️":"Good Evening 🌙";
-};
-
 onAuthStateChanged(auth,user=>{
-  if(!user){location.replace("/");return;}
+  if(!user){ location.replace("/"); return; }
   uid=user.uid;
   emailEl.innerText=user.email;
-  greetEl.innerText=greeting();
   const d=new Date();
   monthFilter.value=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
   load();
@@ -162,9 +227,9 @@ onAuthStateChanged(auth,user=>{
 
 monthFilter.onchange=load;
 
-/* SAVE / UPDATE */
+/* SAVE */
 window.saveExpense=async()=>{
-  if(!amount.value||!note.value)return alert("Fill all fields");
+  if(!amount.value || !note.value) return alert("Fill all fields");
   const data={
     amount:Number(amount.value),
     note:note.value,
@@ -182,7 +247,7 @@ window.saveExpense=async()=>{
 
 window.cancelEdit=()=>{
   editId=null;
-  amount.value="";note.value="";
+  amount.value=""; note.value="";
   formTitle.innerText="Add Expense";
   saveBtn.innerText="Save Expense";
   cancelBtn.style.display="none";
@@ -191,7 +256,7 @@ window.cancelEdit=()=>{
 /* LOAD */
 async function load(){
   list.innerHTML="";
-  let total=0, cats={};
+  let total=0, cat={};
   const [y,m]=monthFilter.value.split("-");
   const start=new Date(y,m-1,1).getTime();
   const end=new Date(y,m,1).getTime();
@@ -199,13 +264,16 @@ async function load(){
   const snap=await getDocs(collection(db,"users",uid,"expenses"));
   snap.forEach(d=>{
     const e=d.data();
-    if(e.createdAt<start||e.createdAt>=end)return;
+    if(e.createdAt<start||e.createdAt>=end) return;
     total+=e.amount;
-    cats[e.category]=(cats[e.category]||0)+e.amount;
+    cat[e.category]=(cat[e.category]||0)+e.amount;
 
     list.innerHTML+=`
       <div class="expense">
-        <div>₹${e.amount} - ${e.note}<br><span class="tag">${e.category}</span></div>
+        <div>
+          ₹${e.amount} – ${e.note}
+          <div class="tag">${e.category}</div>
+        </div>
         <div class="actions">
           <button class="icon edit" onclick="editExpense('${d.id}',${e.amount},'${e.note}','${e.category}')">✏️</button>
           <button class="icon delete" onclick="delExpense('${d.id}')">🗑️</button>
@@ -214,10 +282,9 @@ async function load(){
   });
 
   totalEl.innerText=total;
-  renderChart(cats);
+  renderChart(cat);
 }
 
-/* EDIT */
 window.editExpense=(id,a,n,c)=>{
   editId=id;
   amount.value=a;
@@ -228,7 +295,6 @@ window.editExpense=(id,a,n,c)=>{
   cancelBtn.style.display="block";
 };
 
-/* DELETE */
 window.delExpense=async(id)=>{
   if(confirm("Delete expense?")){
     await deleteDoc(doc(db,"users",uid,"expenses",id));
@@ -236,23 +302,21 @@ window.delExpense=async(id)=>{
   }
 };
 
-/* CHART */
 function renderChart(data){
-  if(chart)chart.destroy();
+  if(chart) chart.destroy();
   chart=new Chart(pieChart,{
     type:"pie",
     data:{
       labels:Object.keys(data),
       datasets:[{
         data:Object.values(data),
-        backgroundColor:["#6366f1","#22c55e","#f97316","#ef4444","#06b6d4"]
+        backgroundColor:["#7c7cff","#22c55e","#fb923c","#ef4444","#38bdf8"]
       }]
     },
     options:{plugins:{legend:{labels:{color:"#fff"}}}}
   });
 }
 
-/* LOGOUT */
 window.logout=async()=>{
   await signOut(auth);
   location.replace("/");
