@@ -4,7 +4,6 @@ self.addEventListener("install", (event) => {
       return cache.addAll([
         "/",
         "/index.html",
-        "/login.html",
         "/dashboard.html",
         "/manifest.json"
       ]);
