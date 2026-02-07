@@ -5,6 +5,10 @@
 <title>Expense Tracker | Login</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<!-- 🔹 PWA REQUIRED -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#6a7bff">
+
 <style>
 *{
   box-sizing:border-box;
@@ -171,6 +175,17 @@ button::after{
 
   <div class="footer">🔒 Secure • ⚡ Fast • 💎 Premium</div>
 </div>
+
+<!-- 🔹 SERVICE WORKER REGISTER (PWA) -->
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js")
+      .then(() => console.log("Service Worker registered"))
+      .catch(err => console.log("SW error", err));
+  });
+}
+</script>
 
 <!-- FIREBASE -->
 <script type="module">
